@@ -2,6 +2,7 @@ import express from "express";
 import * as dotenv from "dotenv";
 import cors from "cors";
 import { Configuration, OpenAIApi } from "openai";
+import axios from "axios";
 
 dotenv.config();
 
@@ -31,6 +32,29 @@ app.post("/", async (req, res) => {
     });
     res.status(200).send({
       bot: response.data.choices[0].text,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({ error });
+  }
+});
+
+app.get("/image", async (req, res) => {
+  const { q } = req.query;
+  try {
+    const response = await axios.post(
+      "https://api.openai.com/v1/images/generations",
+      { prompt: q, model: "image-alpha-001" },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        },
+      }
+    );
+    const imageUrl = response.data.data[0].url;
+    res.status(200).send({
+      image: imageUrl,
     });
   } catch (error) {
     console.log(error);
